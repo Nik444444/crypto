@@ -321,6 +321,12 @@ async def get_signals_history(limit: int = 20):
     """Get trading signals history"""
     try:
         signals = await db.signals.find().sort("timestamp", -1).limit(limit).to_list(length=limit)
+        
+        # Convert ObjectId to string for JSON serialization
+        for signal in signals:
+            if "_id" in signal:
+                signal["_id"] = str(signal["_id"])
+                
         return {"signals": signals}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
