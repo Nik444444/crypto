@@ -236,7 +236,7 @@ async def get_trading_pairs():
         exchange_info = await get_exchange_info()
         pairs = []
         for symbol in exchange_info["symbols"]:
-            if symbol["status"] == "ENABLED" and symbol["quoteAsset"] == "USDT":
+            if symbol["status"] == "1" and symbol["quoteAsset"] == "USDT":  # MEXC uses "1" for enabled
                 pairs.append({
                     "symbol": symbol["symbol"],
                     "baseAsset": symbol["baseAsset"],
