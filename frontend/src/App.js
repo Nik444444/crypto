@@ -1,33 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// Telegram WebApp SDK
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        ready: () => void;
-        expand: () => void;
-        MainButton: {
-          text: string;
-          show: () => void;
-          hide: () => void;
-        };
-        BackButton: {
-          show: () => void;
-          hide: () => void;
-        };
-        themeParams: {
-          bg_color: string;
-          text_color: string;
-          hint_color: string;
-          button_color: string;
-          button_text_color: string;
-        };
-      };
-    };
-  }
-}
+// Telegram WebApp SDK - JavaScript compatible
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
