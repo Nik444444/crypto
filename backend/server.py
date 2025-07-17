@@ -171,15 +171,15 @@ async def analyze_market_data(symbol: str, klines_data: List, ticker_data: Dict)
         5. Объясни причину решения
         
         ОТВЕТ в формате JSON:
-        {
+        {{
             "signal": "LONG/SHORT/NO_SIGNAL",
             "confidence": 85,
             "reason": "Краткое объяснение",
             "technical_analysis": "Подробный технический анализ",
-            "entry_price": цена_входа,
-            "stop_loss": уровень_стоп_лосса,
-            "take_profit": уровень_тейк_профита
-        }
+            "entry_price": {current_price},
+            "stop_loss": {current_price * 0.95},
+            "take_profit": {current_price * 1.05}
+        }}
         """
         
         # Initialize Gemini chat
