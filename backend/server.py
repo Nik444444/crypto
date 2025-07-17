@@ -71,16 +71,13 @@ async def get_klines(symbol: str, interval: str = "1h", limit: int = 100):
     """Get candlestick data from MEXC"""
     # Convert standard intervals to MEXC format
     interval_mapping = {
-        "1m": "Min1",
-        "5m": "Min5", 
-        "15m": "Min15",
-        "30m": "Min30",
-        "1h": "Min60",
-        "4h": "Hour4",
-        "8h": "Hour8",
-        "1d": "Day1",
-        "1w": "Week1",
-        "1M": "Month1"
+        "1m": "1m",
+        "5m": "5m", 
+        "15m": "15m",
+        "30m": "30m",
+        "1h": "60m",  # MEXC uses 60m for 1 hour
+        "4h": "4h",
+        "1d": "1d"
     }
     
     mexc_interval = interval_mapping.get(interval, interval)
