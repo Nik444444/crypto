@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 # Database setup
-DB_PATH = Path("./trading_signals.db")
+DB_PATH = Path("/app/data/trading_signals.db")
 
 # API keys from environment
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
