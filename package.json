@@ -25,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/yourusername/ai-trading-bot-telegram/issues"
   },
-  "homepage": "https://github.com/yourusername/ai-trading-bot-telegram#readme"
+  "homepage": "https://github.com/yourusername/ai-trading-bot-telegram#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
