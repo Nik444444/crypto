@@ -48,40 +48,53 @@
 - Файл `Dockerfile`
 - Файл `fly.toml`
 - Файл `netlify.toml`
+- Файл `.flyignore`
 
 ---
 
 ## 🔧 ЭТАП 3: ДЕПЛОЙ BACKEND НА FLY.IO
 
-### 3.1 Создаем приложение на Fly.io
-1. Откройте https://fly.io/dashboard
-2. Нажмите "Create app"
-3. Выберите "Deploy from GitHub"
-4. Найдите ваш репозиторий `ai-trading-bot-telegram`
-5. Нажмите "Connect"
+### 3.1 Установка Fly CLI
+1. Скачайте Fly CLI с https://fly.io/docs/hands-on/install-flyctl/
+2. Для Windows: скачайте .msi файл и установите
+3. Откройте командную строку (Win+R → cmd)
+4. Проверьте установку: `flyctl version`
 
-### 3.2 Настройка деплоя
-1. В поле "App name" введите: `ai-trading-bot-backend` (или любое уникальное имя)
-2. В поле "Region" оставьте: `Frankfurt, Germany (fra)`
-3. В разделе "Build settings":
-   - Dockerfile path: `Dockerfile`
-   - Build context: `./` (корень репозитория)
-4. Нажмите "Deploy"
+### 3.2 Клонируем репозиторий
+```bash
+# Клонируем ваш репозиторий
+git clone https://github.com/ВАШЕ_ИМЯ/ai-trading-bot-telegram.git
 
-### 3.3 Добавление переменных окружения
-1. После деплоя зайдите в настройки вашего приложения
-2. Найдите раздел "Environment variables"
-3. Добавьте переменные:
-   - `GEMINI_API_KEY`: `AIzaSyBUedxUkLvRC4-_uA4RNjwoI0nqjmJyk4A`
-   - `TELEGRAM_BOT_TOKEN`: `7509126992:AAH5lvrFcB1fZbHH4VfRu4E8djaA7r19TFY`
-4. Нажмите "Save"
+# Переходим в папку
+cd ai-trading-bot-telegram
+```
+
+### 3.3 Деплой на Fly.io
+```bash
+# Входим в аккаунт Fly.io
+flyctl auth login
+
+# Создаем приложение
+flyctl apps create ai-trading-bot-backend --region fra
+
+# Деплоим приложение
+flyctl deploy --app ai-trading-bot-backend
+
+# Добавляем переменные окружения
+flyctl secrets set GEMINI_API_KEY="AIzaSyBUedxUkLvRC4-_uA4RNjwoI0nqjmJyk4A" --app ai-trading-bot-backend
+flyctl secrets set TELEGRAM_BOT_TOKEN="7509126992:AAH5lvrFcB1fZbHH4VfRu4E8djaA7r19TFY" --app ai-trading-bot-backend
+```
 
 ### 3.4 Проверка деплоя
-1. Дождитесь окончания деплоя (обычно 2-5 минут)
-2. Вы получите URL вида: `https://ai-trading-bot-backend.fly.dev`
-3. Откройте этот URL в браузере
-4. Должно появиться: `{"message": "AI Trading Signals Bot API"}`
-5. Проверьте health: `https://ai-trading-bot-backend.fly.dev/api/health`
+```bash
+# Проверяем статус
+flyctl status --app ai-trading-bot-backend
+
+# Получаем URL приложения
+flyctl info --app ai-trading-bot-backend
+```
+
+Ваш backend будет доступен на: `https://ai-trading-bot-backend.fly.dev`
 
 **✅ BACKEND ГОТОВ!** Запишите ваш URL - он понадобится для frontend.
 
@@ -93,7 +106,7 @@
 1. В вашем репозитории откройте файл `frontend/.env.production`
 2. Замените URL на ваш реальный от Fly.io:
    ```
-   REACT_APP_BACKEND_URL=https://ВАШ-APP-NAME.fly.dev
+   REACT_APP_BACKEND_URL=https://ai-trading-bot-backend.fly.dev
    ```
 3. Сохраните файл
 
@@ -109,23 +122,26 @@
 
 ### 5.1 Создаем сайт на Netlify
 1. Откройте https://app.netlify.com/
-2. Нажмите "New site from Git"
+2. Нажмите "Import from Git"
 3. Выберите "GitHub" 
 4. Найдите ваш репозиторий `ai-trading-bot-telegram`
 5. Нажмите на него
 
 ### 5.2 Настройка деплоя
-1. **Branch to deploy**: `main` (или `master`)
-2. **Build command**: `cd frontend && npm install && npm run build`
-3. **Publish directory**: `frontend/build`
-4. В "Environment variables" добавьте:
-   - Key: `REACT_APP_BACKEND_URL`
-   - Value: `https://ВАШ-APP-NAME.fly.dev`
-5. Нажмите "Deploy site"
+1. **Site name**: `ai-trading-bot` (или любое имя)
+2. **Branch to deploy**: `main` (или `master`)
+3. **Build command**: `cd frontend && npm install && npm run build`
+4. **Publish directory**: `frontend/build`
+5. **Environment variables**: 
+   - Нажмите "Advanced build settings"
+   - Добавьте переменную:
+     - Key: `REACT_APP_BACKEND_URL`
+     - Value: `https://ai-trading-bot-backend.fly.dev` (ваш URL)
+6. Нажмите "Deploy site"
 
-### 5.3 Настройка домена (опционально)
-1. Дождитесь окончания деплоя
-2. Вы получите URL вида: `https://random-name-123.netlify.app`
+### 5.3 Результат
+1. Дождитесь окончания деплоя (2-5 минут)
+2. Вы получите URL вида: `https://ai-trading-bot.netlify.app`
 3. Можете изменить название в "Site settings" → "Change site name"
 
 **✅ FRONTEND ГОТОВ!**
@@ -141,7 +157,7 @@
 4. Введите название: `AI Trading Signals`
 5. Введите описание: `AI торговые сигналы для криптовалют`
 6. Отправьте иконку бота (любое изображение)
-7. Введите URL вашего Netlify сайта: `https://ваш-сайт.netlify.app`
+7. Введите URL вашего Netlify сайта: `https://ai-trading-bot.netlify.app`
 
 ### 6.2 Получение Web App URL
 1. BotFather пришлет вам ссылку на Web App
@@ -153,9 +169,9 @@
 ## 🔧 ЭТАП 7: ФИНАЛЬНОЕ ТЕСТИРОВАНИЕ
 
 ### 7.1 Тестируем Backend
-1. Откройте: `https://ваш-backend.fly.dev/api/health`
+1. Откройте: `https://ai-trading-bot-backend.fly.dev/api/health`
 2. Должно быть: `{"status": "healthy", "timestamp": "..."}`
-3. Откройте: `https://ваш-backend.fly.dev/api/trading-pairs`
+3. Откройте: `https://ai-trading-bot-backend.fly.dev/api/trading-pairs`
 4. Должен вернуться список торговых пар
 
 ### 7.2 Тестируем Frontend
@@ -178,11 +194,11 @@
 
 ### 📱 Как пользоваться:
 1. **Для пользователей**: Отправьте ссылку `https://t.me/ваш_бот/app`
-2. **Для разработки**: Используйте `https://ваш-сайт.netlify.app`
+2. **Для разработки**: Используйте `https://ai-trading-bot.netlify.app`
 
 ### 🔗 Ваши URL:
-- **Backend API**: `https://ваш-backend.fly.dev`
-- **Frontend Web**: `https://ваш-сайт.netlify.app`
+- **Backend API**: `https://ai-trading-bot-backend.fly.dev`
+- **Frontend Web**: `https://ai-trading-bot.netlify.app`
 - **Telegram Mini App**: `https://t.me/ваш_бот/app`
 
 ---
@@ -209,7 +225,7 @@
 ## ❓ ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ
 
 **Q: Что если backend не запускается?**
-A: Проверьте логи в Fly.io Dashboard. Часто проблема в неправильных переменных окружения.
+A: Проверьте логи командой `flyctl logs --app ai-trading-bot-backend`
 
 **Q: Что если frontend не загружается?**
 A: Проверьте в Netlify Dashboard, правильно ли указан REACT_APP_BACKEND_URL.
@@ -221,7 +237,7 @@ A: В текущей конфигурации - да, SQLite хранится в
 A: В Netlify: Settings → Domain management → Add custom domain
 
 **Q: Как масштабировать приложение?**
-A: Fly.io позволяет легко увеличивать ресурсы и количество инстансов в настройках.
+A: Fly.io позволяет легко увеличивать ресурсы командой `flyctl scale`
 
 ---
 
