@@ -22,6 +22,9 @@ COPY backend/ .
 # Создание директории для SQLite базы данных
 RUN mkdir -p /app/data
 
+# Установка правильных прав
+RUN chmod 755 /app && chmod 755 /app/data
+
 # Открытие порта
 EXPOSE 8000
 
