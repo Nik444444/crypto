@@ -1,0 +1,29 @@
+{
+  "name": "ai-trading-bot-telegram",
+  "version": "1.0.0",
+  "description": "AI Trading Bot for Telegram Mini App",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm start",
+    "backend": "cd backend && python server.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/ai-trading-bot-telegram.git"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "trading",
+    "ai",
+    "crypto",
+    "signals"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/ai-trading-bot-telegram/issues"
+  },
+  "homepage": "https://github.com/yourusername/ai-trading-bot-telegram#readme"
+}
