@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 import httpx
 import asyncio
@@ -10,6 +9,9 @@ from datetime import datetime
 import json
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import uuid
+import sqlite3
+import aiosqlite
+from pathlib import Path
 
 app = FastAPI(title="AI Binance Signals Bot")
 
@@ -22,10 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB connection
-MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
-client = AsyncIOMotorClient(MONGO_URL)
-db = client.mexc_trading_signals
+# Database setup
+DB_PATH = Path("./trading_signals.db")
 
 # API keys from environment
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
@@ -55,6 +55,49 @@ class MarketData(BaseModel):
     change_24h: float
     volume: float
     timestamp: datetime
+
+# Database initialization
+async def init_db():
+    """Initialize SQLite database"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS trading_signals (
+                id TEXT PRIMARY KEY,
+                symbol TEXT NOT NULL,
+                signal_type TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                price REAL NOT NULL,
+                reason TEXT NOT NULL,
+                technical_analysis TEXT NOT NULL,
+                timestamp DATETIME NOT NULL
+            )
+        ''')
+        await db.commit()
+
+# Database operations
+async def save_signal(signal: TradingSignal):
+    """Save trading signal to database"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute('''
+            INSERT INTO trading_signals (id, symbol, signal_type, confidence, price, reason, technical_analysis, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            signal.id, signal.symbol, signal.signal_type, signal.confidence, 
+            signal.price, signal.reason, signal.technical_analysis, signal.timestamp
+        ))
+        await db.commit()
+
+async def get_signals_history(limit: int = 20):
+    """Get trading signals history"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute('''
+            SELECT * FROM trading_signals 
+            ORDER BY timestamp DESC 
+            LIMIT ?
+        ''', (limit,)) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
 
 # MEXC API functions
 async def fetch_mexc_data(endpoint: str, params: dict = None):
@@ -220,10 +263,15 @@ async def analyze_market_data(symbol: str, klines_data: List, ticker_data: Dict)
             "take_profit": 0
         }
 
+# Startup event
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
+
 # API Routes
 @app.get("/")
 async def root():
-    return {"message": "AI Binance Signals Bot API"}
+    return {"message": "AI Trading Signals Bot API"}
 
 @app.get("/api/health")
 async def health_check():
@@ -306,7 +354,7 @@ async def analyze_trading_signal(request: SignalRequest):
         )
         
         # Store in database
-        await db.signals.insert_one(signal.dict())
+        await save_signal(signal)
         
         return {
             "signal": signal.dict(),
@@ -317,16 +365,10 @@ async def analyze_trading_signal(request: SignalRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/signals/history")
-async def get_signals_history(limit: int = 20):
+async def get_signals_history_endpoint(limit: int = 20):
     """Get trading signals history"""
     try:
-        signals = await db.signals.find().sort("timestamp", -1).limit(limit).to_list(length=limit)
-        
-        # Convert ObjectId to string for JSON serialization
-        for signal in signals:
-            if "_id" in signal:
-                signal["_id"] = str(signal["_id"])
-                
+        signals = await get_signals_history(limit)
         return {"signals": signals}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -356,4 +398,4 @@ async def get_top_movers():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
